@@ -1,0 +1,2167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏰 Idle Dungeon Master - Complete</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+        
+        .main-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stat-label { font-size: 12px; opacity: 0.8; margin-bottom: 5px; }
+        .stat-value { font-size: 24px; font-weight: bold; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        
+        .floor-info {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .farm-mode-toggle {
+            background: #38ef7d;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            border: 2px solid #fff;
+            transition: all 0.3s;
+        }
+        
+        .farm-mode-toggle:hover { transform: scale(1.05); }
+        .farm-mode-toggle.active { 
+            background: #ff6b6b; 
+            animation: pulse 1.5s infinite; 
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .card-icon { font-size: 40px; margin-right: 10px; }
+        .card-title { flex: 1; font-size: 18px; font-weight: bold; }
+        .card-level {
+            background: #ffd700;
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .card-stats { margin: 15px 0; font-size: 14px; }
+        .card-stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .upgrade-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .upgrade-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
+        }
+        
+        .upgrade-btn:disabled { background: #666; cursor: not-allowed; }
+        
+        .dungeon-view {
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .dungeon-entities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            min-height: 350px;
+        }
+        
+        .entity {
+            font-size: 40px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .entity:hover { transform: scale(1.2); }
+        .entity.monster { animation: float 3s ease-in-out infinite; }
+        .entity.hero { animation: bounce 2s ease-in-out infinite; }
+        .entity.boss {
+            font-size: 60px;
+            animation: bossPulse 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        @keyframes bossPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(255, 0, 0, 1)); }
+        }
+        
+        .boss-health {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .boss-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4444;
+            margin-bottom: 10px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.8);
+        }
+        
+        .boss-hp-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 40px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .boss-hp-fill {
+            background: linear-gradient(90deg, #ff0000 0%, #ff4444 100%);
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .floor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .floor-box {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .floor-box:hover:not(.locked) {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+        
+        .floor-box.locked { opacity: 0.5; cursor: not-allowed; }
+        .floor-box.current {
+            border-color: #38ef7d;
+            box-shadow: 0 0 20px rgba(56, 239, 125, 0.5);
+        }
+        .floor-box.boss-floor {
+            border-color: #ff4444;
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.2) 0%, rgba(139, 0, 0, 0.2) 100%);
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        
+        .inventory-item {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .inventory-item:hover {
+            transform: scale(1.05);
+            border-color: #ffd700;
+        }
+        
+        .item-icon { font-size: 40px; margin-bottom: 5px; }
+        .item-count {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ffd700;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .item-rarity-common { border-color: #9e9e9e; }
+        .item-rarity-uncommon { border-color: #4caf50; }
+        .item-rarity-rare { border-color: #2196f3; }
+        .item-rarity-epic { border-color: #9c27b0; }
+        .item-rarity-legendary { border-color: #ff9800; }
+        .item-rarity-mythic { border-color: #e91e63; }
+        
+        .crafting-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .recipe-list {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .recipe-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .recipe-card:hover {
+            border-color: #ffd700;
+            transform: translateX(5px);
+        }
+        
+        .recipe-card.selected {
+            border-color: #38ef7d;
+            background: rgba(56, 239, 125, 0.2);
+        }
+        
+        .craft-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+        
+        .craft-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.5);
+        }
+        
+        .craft-btn:disabled { background: #666; cursor: not-allowed; }
+        
+        .artifact-slot {
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid rgba(255, 215, 0, 0.5);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .artifact-slot:hover {
+            border-color: #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+        
+        .artifact-slot.equipped {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 140, 0, 0.2) 100%);
+        }
+        
+        .artifact-bonus {
+            font-size: 14px;
+            color: #38ef7d;
+            margin-top: 10px;
+        }
+        
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .shop-item {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #9c27b0;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .shop-item:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(156, 39, 176, 0.5);
+        }
+        
+        .shop-price {
+            background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .buy-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .buy-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(156, 39, 176, 0.5);
+        }
+        
+        .buy-btn:disabled { background: #666; cursor: not-allowed; }
+        
+        .loot-particle {
+            position: absolute;
+            font-size: 20px;
+            animation: lootFloat 2s ease-out forwards;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        @keyframes lootFloat {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
+        }
+        
+        .prestige-section {
+            background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .prestige-btn {
+            padding: 20px 40px;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            border: 3px solid #fff;
+            border-radius: 15px;
+            color: #000;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .prestige-btn:hover:not(:disabled) {
+            transform: scale(1.1) rotateZ(2deg);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6);
+        }
+        
+        .prestige-btn:disabled { background: #666; cursor: not-allowed; opacity: 0.5; }
+        
+        .event-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 40px 60px;
+            border-radius: 20px;
+            border: 5px solid #ffd700;
+            z-index: 1000;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            animation: eventPop 0.5s ease-out forwards;
+        }
+        
+        @keyframes eventPop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .event-banner h2 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        }
+        
+        .achievement-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 30px;
+            border-radius: 15px;
+            border: 2px solid #ffd700;
+            z-index: 999;
+            animation: slideIn 0.5s ease-out;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .floor-progress { margin-top: 15px; }
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+            height: 100%;
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .auto-features {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .auto-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .toggle-switch {
+            width: 60px;
+            height: 30px;
+            background: #666;
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.active { background: #38ef7d; }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+        
+        .toggle-switch.active::after { left: 32px; }
+        
+        @media (max-width: 768px) {
+            .main-stats { grid-template-columns: 1fr 1fr; }
+            .card-grid { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+            .crafting-section { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="main-stats">
+                <div class="stat-box">
+                    <div class="stat-label">💰 Gold/Second</div>
+                    <div class="stat-value" id="goldPerSec">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">💎 Total Gold</div>
+                    <div class="stat-value" id="totalGold">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">👾 Monsters Killed</div>
+                    <div class="stat-value" id="monstersKilled">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">⚫ Dark Essence</div>
+                    <div class="stat-value" id="darkEssence">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">🎒 Items</div>
+                    <div class="stat-value" id="totalItems">0</div>
+                </div>
+            </div>
+            <div class="floor-info">
+                <div>
+                    🏰 Floor <span id="currentFloor">1</span>/100 - <span id="biomeName">DARK CAVES</span>
+                </div>
+                <div class="farm-mode-toggle" id="farmModeBtn" onclick="toggleFarmMode()">
+                    🌾 Farm Mode: OFF
+                </div>
+            </div>
+            <div class="floor-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="floorProgress" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="auto-features">
+            <h3>🤖 Auto Features</h3>
+            <div class="auto-toggle">
+                <span>Auto-Collect Loot</span>
+                <div class="toggle-switch active" id="autoCollectToggle" onclick="toggleAuto('collect')"></div>
+            </div>
+            <div class="auto-toggle">
+                <span>Auto-Upgrade (Floor 10+)</span>
+                <div class="toggle-switch" id="autoUpgradeToggle" onclick="toggleAuto('upgrade')"></div>
+            </div>
+            <div class="auto-toggle">
+                <span>Auto-Prestige (Prestige 1+)</span>
+                <div class="toggle-switch" id="autoPrestigeToggle" onclick="toggleAuto('prestige')"></div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('dungeon', event)">🏰 Dungeon</button>
+            <button class="tab-btn" onclick="switchTab('monsters', event)">👾 Monsters</button>
+            <button class="tab-btn" onclick="switchTab('heroes', event)">⚔️ Heroes</button>
+            <button class="tab-btn" onclick="switchTab('floors', event)">🗺️ Floors</button>
+            <button class="tab-btn" onclick="switchTab('inventory', event)">🎒 Inventory</button>
+            <button class="tab-btn" onclick="switchTab('crafting', event)">⚒️ Crafting</button>
+            <button class="tab-btn" onclick="switchTab('artifacts', event)">✨ Artifacts</button>
+            <button class="tab-btn" onclick="switchTab('shop', event)">🛒 Shop</button>
+            <button class="tab-btn" onclick="switchTab('prestige', event)">🔄 Prestige</button>
+        </div>
+
+        <div id="dungeon" class="content-section active">
+            <div id="bossHealthContainer"></div>
+            <div class="dungeon-view">
+                <div class="dungeon-entities" id="dungeonEntities"></div>
+            </div>
+        </div>
+
+        <div id="monsters" class="content-section">
+            <div class="card-grid" id="monsterCards"></div>
+        </div>
+
+        <div id="heroes" class="content-section">
+            <div class="card-grid" id="heroCards"></div>
+        </div>
+
+        <div id="floors" class="content-section">
+            <h2 style="margin-bottom: 20px;">🗺️ Select Floor (Red = Boss Floor)</h2>
+            <div class="floor-grid" id="floorGrid"></div>
+        </div>
+
+        <div id="inventory" class="content-section">
+            <h2 style="margin-bottom: 20px;">🎒 Item Inventory</h2>
+            <div class="inventory-grid" id="inventoryGrid"></div>
+        </div>
+
+        <div id="crafting" class="content-section">
+            <h2 style="margin-bottom: 20px;">⚒️ Crafting Station</h2>
+            <div class="crafting-section">
+                <div class="recipe-list" id="recipeList"></div>
+                <div class="recipe-list">
+                    <h3>Selected Recipe</h3>
+                    <div id="selectedRecipe" style="margin-top: 20px; font-size: 14px;">
+                        Select a recipe from the left
+                    </div>
+                    <button class="craft-btn" id="craftBtn" onclick="craftItem()" disabled>
+                        ⚒️ CRAFT
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="artifacts" class="content-section">
+            <h2 style="margin-bottom: 20px;">✨ Artifacts (Equip up to 3)</h2>
+            <div class="card-grid" id="artifactSlots"></div>
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">Available Artifacts</h3>
+            <div class="card-grid" id="availableArtifacts"></div>
+        </div>
+
+        <div id="shop" class="content-section">
+            <h2 style="margin-bottom: 20px;">🛒 Dark Essence Shop</h2>
+            <div class="shop-grid" id="shopGrid"></div>
+        </div>
+
+        <div id="prestige" class="content-section">
+            <div class="prestige-section">
+                <h2>🔄 DUNGEON COLLAPSE</h2>
+                <p style="font-size: 18px; margin: 20px 0;">Reset your dungeon and gain permanent power!</p>
+                
+                <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 10px;">
+                    <div style="font-size: 24px; margin: 10px 0;">
+                        You will gain: <span style="color: #ffd700;" id="essenceGain">0</span> ⚫ Dark Essence
+                    </div>
+                    <div style="margin: 10px 0;">
+                        Current Multiplier: <span style="color: #38ef7d;" id="currentMultiplier">1.0x</span>
+                    </div>
+                    <div style="margin: 10px 0;">
+                        After Prestige: <span style="color: #38ef7d;" id="afterMultiplier">1.0x</span>
+                    </div>
+                </div>
+
+                <button class="prestige-btn" id="prestigeBtn" onclick="doPrestige()">
+                    🌟 PRESTIGE NOW 🌟
+                </button>
+
+                <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
+                    <p>⚠️ Lose: Upgrades, floors, gold, items</p>
+                    <p>✅ Keep: Dark Essence, artifacts, shop upgrades</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+    <script>
+        // Game data - continued in next section due to size
+        const GAME_DATA = {
+            monsters: {
+                bat: {lv:1, sr:10, dr:1, c:100, e:'🦇', n:'Bat'},
+                zombie: {lv:0, sr:5, dr:2, c:500, e:'🧟', n:'Zombie'},
+                ghost: {lv:0, sr:3, dr:3, c:2000, e:'👻', n:'Ghost'},
+                spider: {lv:0, sr:8, dr:1.5, c:5000, e:'🕷️', n:'Spider'},
+                wolf: {lv:0, sr:4, dr:4, c:15000, e:'🐺', n:'Wolf'},
+                troll: {lv:0, sr:2, dr:10, c:50000, e:'🧌', n:'Troll'},
+                dragon: {lv:0, sr:0.5, dr:50, c:200000, e:'🐉', n:'Dragon'},
+                demon: {lv:0, sr:0.2, dr:100, c:1000000, e:'👹', n:'Demon'},
+                slime: {lv:0, sr:12, dr:0.8, c:2500, e:'🟢', n:'Slime'},
+                skeleton: {lv:0, sr:6, dr:5, c:10000, e:'💀', n:'Skeleton'},
+                vampire: {lv:0, sr:1, dr:25, c:75000, e:'🧛', n:'Vampire'},
+                werewolf: {lv:0, sr:3, dr:15, c:35000, e:'🐺', n:'Werewolf'},
+                golem: {lv:0, sr:1.5, dr:30, c:150000, e:'🗿', n:'Golem'},
+                phoenix: {lv:0, sr:0.3, dr:75, c:500000, e:'🔥', n:'Phoenix'},
+                kraken: {lv:0, sr:0.4, dr:60, c:350000, e:'🐙', n:'Kraken'},
+                hydra: {lv:0, sr:0.25, dr:90, c:750000, e:'🐲', n:'Hydra'},
+                lich: {lv:0, sr:0.15, dr:125, c:1500000, e:'💀', n:'Lich'},
+                titan: {lv:0, sr:0.1, dr:200, c:3000000, e:'⚡', n:'Titan'},
+                eldritch: {lv:0, sr:0.05, dr:350, c:7500000, e:'👁️', n:'Eldritch'},
+                ancient: {lv:0, sr:0.02, dr:500, c:15000000, e:'🌌', n:'Ancient One'}
+            },
+            heroes: {
+                warrior: {lv:1, p:10, ar:1, c:200, e:'⚔️', n:'Warrior'},
+                archer: {lv:0, p:8, ar:1.5, c:1000, e:'🏹', n:'Archer'},
+                mage: {lv:0, p:15, ar:0.8, c:5000, e:'🧙', n:'Mage'},
+                tank: {lv:0, p:5, ar:0.5, c:15000, e:'🛡️', n:'Tank'},
+                assassin: {lv:0, p:20, ar:2, c:50000, e:'🗡️', n:'Assassin'},
+                paladin: {lv:0, p:25, ar:1.2, c:200000, e:'✨', n:'Paladin'},
+                necromancer: {lv:0, p:30, ar:0.9, c:500000, e:'💀', n:'Necromancer'},
+                berserker: {lv:0, p:35, ar:1.8, c:1000000, e:'🪓', n:'Berserker'},
+                druid: {lv:0, p:28, ar:1.1, c:2000000, e:'🌿', n:'Druid'},
+                monk: {lv:0, p:22, ar:2.5, c:5000000, e:'🙏', n:'Monk'},
+                ranger: {lv:0, p:26, ar:1.6, c:10000000, e:'🎯', n:'Ranger'},
+                warlock: {lv:0, p:40, ar:0.7, c:20000000, e:'🔮', n:'Warlock'},
+                crusader: {lv:0, p:32, ar:1.3, c:50000000, e:'⚜️', n:'Crusader'},
+                ninja: {lv:0, p:38, ar:2.2, c:100000000, e:'🥷', n:'Ninja'},
+                shaman: {lv:0, p:45, ar:1, c:250000000, e:'⚡', n:'Shaman'},
+                blood_knight: {lv:0, p:50, ar:1.4, c:500000000, e:'🩸', n:'Blood Knight'},
+                angel: {lv:0, p:60, ar:1.1, c:1000000000, e:'👼', n:'Angel'},
+                demon_hunter: {lv:0, p:70, ar:0.8, c:2500000000, e:'😈', n:'Demon Hunter'},
+                archon: {lv:0, p:80, ar:1.5, c:5000000000, e:'🌟', n:'Archon'},
+                godking: {lv:0, p:100, ar:2, c:10000000000, e:'👑', n:'God King'}
+            },
+            items: {
+                bone: {n:'Bone', e:'🦴', r:'common', d:0.3},
+                leather: {n:'Leather', e:'🟤', r:'common', d:0.25},
+                wood: {n:'Wood', e:'🪵', r:'common', d:0.3},
+                stone: {n:'Stone', e:'🪨', r:'common', d:0.28},
+                iron: {n:'Iron Ore', e:'⚙️', r:'uncommon', d:0.15},
+                crystal: {n:'Crystal', e:'💎', r:'uncommon', d:0.1},
+                essence: {n:'Magic Essence', e:'🌟', r:'uncommon', d:0.12},
+                herb: {n:'Mystic Herb', e:'🌿', r:'uncommon', d:0.13},
+                mithril: {n:'Mithril', e:'🔷', r:'rare', d:0.05},
+                gold_ore: {n:'Gold Ore', e:'🟡', r:'rare', d:0.04},
+                soul_gem: {n:'Soul Gem', e:'💜', r:'rare', d:0.03},
+                moonstone: {n:'Moonstone', e:'🌙', r:'rare', d:0.045},
+                dragon_scale: {n:'Dragon Scale', e:'🐲', r:'epic', d:0.02},
+                phoenix_feather: {n:'Phoenix Feather', e:'🪶', r:'epic', d:0.015},
+                demon_horn: {n:'Demon Horn', e:'😈', r:'epic', d:0.018},
+                angel_wing: {n:'Angel Wing', e:'🪽', r:'epic', d:0.016},
+                void_crystal: {n:'Void Crystal', e:'⚫', r:'legendary', d:0.005},
+                celestial_ore: {n:'Celestial Ore', e:'✨', r:'legendary', d:0.003},
+                time_shard: {n:'Time Shard', e:'⏳', r:'legendary', d:0.004},
+                cosmic_dust: {n:'Cosmic Dust', e:'🌌', r:'mythic', d:0.001}
+            },
+            recipes: {
+                basic_sword: {n:'Basic Sword', e:'🗡️', m:{iron:5, wood:3}, b:{t:'hero_power', v:10}},
+                iron_armor: {n:'Iron Armor', e:'🛡️', m:{iron:10, leather:5}, b:{t:'hero_defense', v:15}},
+                magic_staff: {n:'Magic Staff', e:'🪄', m:{wood:8, crystal:4, essence:3}, b:{t:'hero_power', v:25}},
+                gold_ring: {n:'Gold Ring', e:'💍', m:{gold_ore:15, soul_gem:5}, b:{t:'gold_bonus', v:20}},
+                mithril_blade: {n:'Mithril Blade', e:'⚔️', m:{mithril:10, crystal:8, essence:5}, b:{t:'hero_power', v:50}},
+                dragon_amulet: {n:'Dragon Amulet', e:'📿', m:{dragon_scale:20, gold_ore:15, soul_gem:10}, b:{t:'drop_rate', v:30}},
+                phoenix_crown: {n:'Phoenix Crown', e:'👑', m:{phoenix_feather:25, gold_ore:20, celestial_ore:5}, b:{t:'hero_power', v:75}},
+                void_orb: {n:'Void Orb', e:'🔮', m:{void_crystal:30, celestial_ore:15, dragon_scale:10}, b:{t:'all_bonus', v:50}},
+                lunar_medallion: {n:'Lunar Medallion', e:'🌙', m:{moonstone:25, crystal:20, essence:15}, b:{t:'spawn_rate', v:25}},
+                demon_gauntlet: {n:'Demon Gauntlet', e:'🔥', m:{demon_horn:30, mithril:20, soul_gem:15}, b:{t:'hero_power', v:100}},
+                angel_halo: {n:'Angel Halo', e:'😇', m:{angel_wing:30, celestial_ore:10, crystal:25}, b:{t:'gold_bonus', v:50}},
+                cosmic_belt: {n:'Cosmic Belt', e:'🌌', m:{cosmic_dust:10, void_crystal:20, celestial_ore:15}, b:{t:'all_bonus', v:100}},
+                time_keeper: {n:'Time Keeper', e:'⏰', m:{time_shard:25, void_crystal:15, essence:30}, b:{t:'spawn_rate', v:50}},
+                crystal_heart: {n:'Crystal Heart', e:'💠', m:{crystal:50, soul_gem:25, essence:40}, b:{t:'hero_power', v:125}},
+                soul_harvester: {n:'Soul Harvester', e:'👻', m:{soul_gem:40, demon_horn:20, void_crystal:10}, b:{t:'drop_rate', v:75}},
+                nature_totem: {n:'Nature Totem', e:'🌳', m:{herb:60, wood:50, essence:30}, b:{t:'spawn_rate', v:40}},
+                blood_sigil: {n:'Blood Sigil', e:'🩸', m:{demon_horn:35, dragon_scale:25, soul_gem:30}, b:{t:'hero_power', v:150}},
+                celestial_compass: {n:'Celestial Compass', e:'🧭', m:{celestial_ore:30, moonstone:35, crystal:40}, b:{t:'gold_bonus', v:100}},
+                infinity_stone: {n:'Infinity Stone', e:'💫', m:{cosmic_dust:20, time_shard:30, void_crystal:25}, b:{t:'all_bonus', v:200}},
+                godly_relic: {n:'Godly Relic', e:'⚡', m:{cosmic_dust:50, celestial_ore:40, angel_wing:35, phoenix_feather:35}, b:{t:'all_bonus', v:500}}
+            },
+            shop: {
+                gold_mult: {n:'Gold Multiplier', e:'💰', d:'+20% gold', c:5, m:10, b:{t:'gold_bonus', v:20}},
+                drop_boost: {n:'Drop Rate Boost', e:'🎁', d:'+15% drop rate', c:8, m:10, b:{t:'drop_rate', v:15}},
+                hero_boost: {n:'Hero Power', e:'⚔️', d:'+25% hero power', c:12, m:10, b:{t:'hero_power', v:25}},
+                spawn_boost: {n:'Spawn Accelerator', e:'⏩', d:'+30% spawn rate', c:10, m:8, b:{t:'spawn_rate', v:30}},
+                prestige_bonus: {n:'Prestige Bonus', e:'🌟', d:'+50% Dark Essence', c:20, m:5, b:{t:'prestige_bonus', v:50}},
+                floor_skip: {n:'Floor Skipper', e:'🚀', d:'-10% kills needed', c:15, m:5, b:{t:'floor_speed', v:10}},
+                boss_slayer: {n:'Boss Slayer', e:'👹', d:'+50% boss damage', c:25, m:5, b:{t:'boss_damage', v:50}},
+                auto_enhance: {n:'Auto Enhancement', e:'🤖', d:'2x auto speed', c:10, m:5, b:{t:'auto_speed', v:100}}
+            },
+            biomes: [
+                {f:[1,10], n:'DARK CAVES', b:'🦇 Bat King'},
+                {f:[11,20], n:'SPIDER CATACOMBS', b:'🕷️ Spider Queen'},
+                {f:[21,30], n:'HAUNTED CRYPTS', b:'👻 Phantom Lord'},
+                {f:[31,40], n:'VOLCANIC DEPTHS', b:'🔥 Magma Titan'},
+                {f:[41,50], n:'FROZEN WASTELAND', b:'❄️ Ice Wyrm'},
+                {f:[51,60], n:'STORM CITADEL', b:'⚡ Storm Dragon'},
+                {f:[61,70], n:'VOID DIMENSION', b:'⚫ Void Entity'},
+                {f:[71,80], n:'HELL\'S GATES', b:'😈 Demon King'},
+                {f:[81,90], n:'NECROPOLIS', b:'💀 Lich Emperor'},
+                {f:[91,100], n:'FINAL ASCENSION', b:'👿 Dark God'}
+            ]
+        };
+
+        // IDLE DUNGEON MASTER - COMPLETE FIXED VERSION WITH 10 WORLDS
+// Replace everything after GAME_DATA in the HTML file with this code
+
+const WORLDS = [
+    { id: 1, name: 'MORTAL REALM', floors: [1, 100], unlocked: true, color: '#667eea' },
+    { id: 2, name: 'SPIRIT REALM', floors: [101, 200], unlocked: false, color: '#764ba2' },
+    { id: 3, name: 'DEMON REALM', floors: [201, 300], unlocked: false, color: '#ff0844' },
+    { id: 4, name: 'CELESTIAL REALM', floors: [301, 400], unlocked: false, color: '#ffd700' },
+    { id: 5, name: 'VOID REALM', floors: [401, 500], unlocked: false, color: '#9c27b0' },
+    { id: 6, name: 'TIME REALM', floors: [501, 600], unlocked: false, color: '#00bcd4' },
+    { id: 7, name: 'CHAOS REALM', floors: [601, 700], unlocked: false, color: '#ff5722' },
+    { id: 8, name: 'DIVINE REALM', floors: [701, 800], unlocked: false, color: '#4caf50' },
+    { id: 9, name: 'COSMIC REALM', floors: [801, 900], unlocked: false, color: '#e91e63' },
+    { id: 10, name: 'ETERNITY REALM', floors: [901, 1000], unlocked: false, color: '#ff9800' }
+];
+
+const gameState = {
+    gold: 0,
+    darkEssence: 0,
+    monstersKilled: 0,
+    currentFloor: 1,
+    currentWorld: 1,
+    floorProgress: 0,
+    prestigeCount: 0,
+    totalGoldEarned: 0,
+    farmMode: false,
+    bossActive: false,
+    bossHP: 0,
+    bossMaxHP: 0,
+    unlockedFloors: [1],
+    unlockedWorlds: [1],
+    autoCollect: true,
+    autoUpgrade: false,
+    autoPrestige: false,
+    inventory: {},
+    equippedArtifacts: [],
+    ownedArtifacts: [],
+    shopUpgrades: {},
+    activeMonsters: [],
+    activeHeroes: [],
+    lastUpdate: Date.now(),
+    selectedRecipe: null
+};
+
+function init() {
+    loadGame();
+    renderMonsterCards();
+    renderHeroCards();
+    renderFloorGrid();
+    renderWorldSelector();
+    renderInventory();
+    renderCraftingRecipes();
+    renderArtifacts();
+    renderShop();
+    updateUI();
+    startGameLoop();
+}
+
+function startGameLoop() {
+    setInterval(() => {
+        const now = Date.now();
+        const deltaTime = (now - gameState.lastUpdate) / 1000;
+        gameState.lastUpdate = now;
+
+        // PASSIVE GOLD GENERATION - NEW FIX
+        generatePassiveGold(deltaTime);
+
+        if (!gameState.bossActive && isBossFloor(gameState.currentFloor)) {
+            if (gameState.floorProgress >= getRequiredKills()) {
+                spawnBoss();
+            }
+        }
+
+        if (!gameState.bossActive) {
+            spawnMonsters(deltaTime);
+        }
+        
+        heroesAttack(deltaTime);
+        updateUI();
+        
+        if (gameState.autoUpgrade && gameState.currentFloor >= 10) {
+            autoUpgradeLogic();
+        }
+        
+        if (gameState.autoPrestige && gameState.prestigeCount >= 1) {
+            const essenceGain = calculateEssenceGain();
+            const currentMult = getMultiplier();
+            const afterMult = getMultiplier(gameState.darkEssence + essenceGain);
+            if (essenceGain > 0 && afterMult >= currentMult * 2) {
+                doPrestige();
+            }
+        }
+    }, 100);
+
+    setInterval(() => renderDungeon(), 50);
+    setInterval(() => saveGame(), 5000);
+}
+
+// NEW: Passive gold generation function
+function generatePassiveGold(deltaTime) {
+    let goldPerSecond = 0;
+    
+    // Calculate gold from active heroes attacking
+    gameState.activeHeroes.forEach(hero => {
+        goldPerSecond += hero.power * hero.attackRate * 0.5;
+    });
+    
+    // Calculate gold from all upgraded heroes (even if not spawned yet)
+    Object.keys(GAME_DATA.heroes).forEach(key => {
+        const h = GAME_DATA.heroes[key];
+        if (h.lv > 0) {
+            const heroPower = h.p * h.lv * (1 + (getArtifactBonus('hero_power') + getShopBonus('hero_power')) / 100);
+            goldPerSecond += heroPower * h.ar * 0.1; // Base passive income
+        }
+    });
+    
+    // Apply multipliers
+    goldPerSecond *= getMultiplier();
+    
+    // Add gold based on delta time
+    const goldToAdd = goldPerSecond * deltaTime;
+    if (goldToAdd > 0) {
+        gameState.gold += goldToAdd;
+        gameState.totalGoldEarned += goldToAdd;
+    }
+}
+
+function isBossFloor(floor) {
+    return floor % 10 === 0;
+}
+
+function spawnBoss() {
+    const worldBiomes = getBiomesForCurrentWorld();
+    const biomeIndex = Math.floor((gameState.currentFloor - 1) / 10) % worldBiomes.length;
+    const biome = worldBiomes[biomeIndex];
+    
+    gameState.bossActive = true;
+    gameState.bossMaxHP = 1000 * gameState.currentFloor * (1 + gameState.currentFloor * 0.5);
+    gameState.bossHP = gameState.bossMaxHP;
+    gameState.bossName = biome ? biome.b : '👹 Boss Monster';
+    showEventBanner('⚔️ BOSS APPEARED!', gameState.bossName);
+}
+
+function getBiomesForCurrentWorld() {
+    const worldId = Math.ceil(gameState.currentFloor / 100);
+    const baseIndex = (worldId - 1) * 10;
+    
+    return [
+        {f:[1,10], n:`World ${worldId} - Zone 1`, b:'🦇 Bat King'},
+        {f:[11,20], n:`World ${worldId} - Zone 2`, b:'🕷️ Spider Queen'},
+        {f:[21,30], n:`World ${worldId} - Zone 3`, b:'👻 Phantom Lord'},
+        {f:[31,40], n:`World ${worldId} - Zone 4`, b:'🔥 Magma Titan'},
+        {f:[41,50], n:`World ${worldId} - Zone 5`, b:'❄️ Ice Wyrm'},
+        {f:[51,60], n:`World ${worldId} - Zone 6`, b:'⚡ Storm Dragon'},
+        {f:[61,70], n:`World ${worldId} - Zone 7`, b:'⚫ Void Entity'},
+        {f:[71,80], n:`World ${worldId} - Zone 8`, b:'😈 Demon King'},
+        {f:[81,90], n:`World ${worldId} - Zone 9`, b:'💀 Lich Emperor'},
+        {f:[91,100], n:`World ${worldId} - Zone 10`, b:`👿 ${WORLDS[worldId-1].name} GUARDIAN`}
+    ];
+}
+
+function spawnMonsters(deltaTime) {
+    if (gameState.farmMode) return;
+    
+    const multiplier = getMultiplier();
+    const spawnBonus = 1 + (getShopBonus('spawn_rate') / 100);
+    
+    Object.keys(GAME_DATA.monsters).forEach(key => {
+        const m = GAME_DATA.monsters[key];
+        if (m.lv > 0) {
+            const spawnChance = m.sr * m.lv * deltaTime * spawnBonus;
+            if (Math.random() < spawnChance / 10) {
+                gameState.activeMonsters.push({
+                    type: key,
+                    hp: 100 * (1 + gameState.currentFloor * 0.5),
+                    maxHp: 100 * (1 + gameState.currentFloor * 0.5),
+                    emoji: m.e,
+                    dropRate: m.dr * multiplier
+                });
+            }
+        }
+    });
+
+    Object.keys(GAME_DATA.heroes).forEach(key => {
+        const h = GAME_DATA.heroes[key];
+        if (h.lv > 0) {
+            const spawnChance = 0.5 * h.lv * deltaTime;
+            if (Math.random() < spawnChance / 10) {
+                gameState.activeHeroes.push({
+                    type: key,
+                    power: h.p * h.lv * (1 + (getArtifactBonus('hero_power') + getShopBonus('hero_power')) / 100),
+                    emoji: h.e,
+                    attackRate: h.ar
+                });
+            }
+        }
+    });
+
+    if (gameState.activeMonsters.length > 50) gameState.activeMonsters = gameState.activeMonsters.slice(-50);
+    if (gameState.activeHeroes.length > 30) gameState.activeHeroes = gameState.activeHeroes.slice(-30);
+}
+
+function heroesAttack(deltaTime) {
+    gameState.activeHeroes.forEach(hero => {
+        if (Math.random() < hero.attackRate * deltaTime) {
+            if (gameState.bossActive) {
+                const bossDamage = hero.power * (1 + getShopBonus('boss_damage') / 100);
+                gameState.bossHP -= bossDamage;
+                if (gameState.bossHP <= 0) defeatBoss();
+            } else if (gameState.activeMonsters.length > 0) {
+                const idx = Math.floor(Math.random() * gameState.activeMonsters.length);
+                const monster = gameState.activeMonsters[idx];
+                monster.hp -= hero.power;
+                if (monster.hp <= 0) killMonster(monster, idx);
+            }
+        }
+    });
+}
+
+function killMonster(monster, index) {
+    const goldDrop = monster.dropRate * (1 + gameState.currentFloor * 0.2) * (1 + (getArtifactBonus('gold_bonus') + getShopBonus('gold_bonus')) / 100);
+    gameState.gold += goldDrop;
+    gameState.totalGoldEarned += goldDrop;
+    gameState.monstersKilled++;
+    
+    if (!gameState.farmMode) gameState.floorProgress += 1;
+    
+    dropItems();
+    if (gameState.autoCollect) createLootParticle();
+    
+    gameState.activeMonsters.splice(index, 1);
+    if (!gameState.farmMode) checkFloorProgress();
+}
+
+function dropItems() {
+    const dropBonus = 1 + ((getArtifactBonus('drop_rate') + getShopBonus('drop_rate')) / 100);
+    
+    Object.keys(GAME_DATA.items).forEach(itemKey => {
+        const item = GAME_DATA.items[itemKey];
+        const adjustedChance = item.d * dropBonus * (1 + gameState.currentFloor * 0.01);
+        
+        if (Math.random() < adjustedChance) {
+            if (!gameState.inventory[itemKey]) gameState.inventory[itemKey] = 0;
+            gameState.inventory[itemKey]++;
+        }
+    });
+}
+
+function defeatBoss() {
+    gameState.bossActive = false;
+    
+    const bossGold = gameState.currentFloor * 1000 * getMultiplier();
+    gameState.gold += bossGold;
+    gameState.totalGoldEarned += bossGold;
+    
+    const rareMats = ['dragon_scale', 'phoenix_feather', 'void_crystal', 'celestial_ore', 'demon_horn', 'angel_wing', 'time_shard', 'cosmic_dust'];
+    rareMats.forEach(material => {
+        if (Math.random() < 0.4) {
+            if (!gameState.inventory[material]) gameState.inventory[material] = 0;
+            gameState.inventory[material] += Math.floor(1 + gameState.currentFloor / 15);
+        }
+    });
+    
+    showEventBanner('🎉 BOSS DEFEATED!', `+${formatNumber(bossGold)} Gold!`);
+    
+    // Check if finished floor 100, 200, 300, etc (world completion)
+    if (gameState.currentFloor % 100 === 0 && !gameState.farmMode) {
+        const nextWorld = Math.floor(gameState.currentFloor / 100) + 1;
+        if (nextWorld <= 10 && !gameState.unlockedWorlds.includes(nextWorld)) {
+            gameState.unlockedWorlds.push(nextWorld);
+            gameState.unlockedWorlds.sort((a, b) => a - b);
+            showEventBanner('🌍 NEW WORLD UNLOCKED!', WORLDS[nextWorld - 1].name);
+            renderWorldSelector();
+        }
+    }
+    
+    if (!gameState.farmMode && gameState.currentFloor < 1000) {
+        gameState.currentFloor++;
+        gameState.floorProgress = 0;
+        
+        if (!gameState.unlockedFloors.includes(gameState.currentFloor)) {
+            gameState.unlockedFloors.push(gameState.currentFloor);
+            gameState.unlockedFloors.sort((a, b) => a - b);
+        }
+        
+        renderFloorGrid();
+        showAchievement(`🏰 Floor ${gameState.currentFloor} Unlocked!`);
+    }
+}
+
+function checkFloorProgress() {
+    if (isBossFloor(gameState.currentFloor)) return;
+    
+    const requiredKills = getRequiredKills();
+    if (gameState.floorProgress >= requiredKills) {
+        if (gameState.currentFloor < 1000) {
+            gameState.currentFloor++;
+            gameState.floorProgress = 0;
+            
+            if (!gameState.unlockedFloors.includes(gameState.currentFloor)) {
+                gameState.unlockedFloors.push(gameState.currentFloor);
+                gameState.unlockedFloors.sort((a, b) => a - b);
+            }
+            
+            renderFloorGrid();
+            showAchievement(`🏰 Floor ${gameState.currentFloor} Unlocked!`);
+        }
+    }
+}
+
+function getRequiredKills() {
+    const baseKills = isBossFloor(gameState.currentFloor) ? 100 + (gameState.currentFloor * 5) : 50 + (gameState.currentFloor * 10);
+    const reduction = 1 - (getShopBonus('floor_speed') / 100);
+    return Math.floor(baseKills * reduction);
+}
+
+function toggleFarmMode() {
+    gameState.farmMode = !gameState.farmMode;
+    const btn = document.getElementById('farmModeBtn');
+    
+    if (gameState.farmMode) {
+        btn.textContent = '🌾 Farm Mode: ON';
+        btn.classList.add('active');
+        showAchievement('🌾 Farm Mode ON!');
+    } else {
+        btn.textContent = '🌾 Farm Mode: OFF';
+        btn.classList.remove('active');
+        showAchievement('🌾 Farm Mode OFF!');
+    }
+}
+
+function selectFloor(floor) {
+    if (!gameState.unlockedFloors.includes(floor)) {
+        showAchievement('🔒 Floor locked!');
+        return;
+    }
+    
+    gameState.currentFloor = floor;
+    gameState.currentWorld = Math.ceil(floor / 100);
+    gameState.floorProgress = 0;
+    gameState.bossActive = false;
+    gameState.activeMonsters = [];
+    
+    renderFloorGrid();
+    renderWorldSelector();
+    showAchievement(`🏰 Teleported to Floor ${floor}!`);
+}
+
+function selectWorld(worldId) {
+    if (!gameState.unlockedWorlds.includes(worldId)) {
+        showAchievement('🔒 Complete previous world first!');
+        return;
+    }
+    
+    gameState.currentWorld = worldId;
+    const startFloor = (worldId - 1) * 100 + 1;
+    
+    // Find first unlocked floor in this world
+    let targetFloor = startFloor;
+    for (let i = startFloor; i <= worldId * 100; i++) {
+        if (gameState.unlockedFloors.includes(i)) {
+            targetFloor = i;
+            break;
+        }
+    }
+    
+    gameState.currentFloor = targetFloor;
+    gameState.floorProgress = 0;
+    gameState.bossActive = false;
+    gameState.activeMonsters = [];
+    
+    renderFloorGrid();
+    renderWorldSelector();
+    showAchievement(`🌍 Entered ${WORLDS[worldId - 1].name}!`);
+}
+
+function renderWorldSelector() {
+    // Create world selector if it doesn't exist
+    let worldSelector = document.getElementById('worldSelector');
+    if (!worldSelector) {
+        worldSelector = document.createElement('div');
+        worldSelector.id = 'worldSelector';
+        worldSelector.style.cssText = `
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-radius: 15px;
+        `;
+        
+        const floorsSection = document.getElementById('floors');
+        floorsSection.insertBefore(worldSelector, floorsSection.firstChild);
+    }
+    
+    worldSelector.innerHTML = '<h3 style="grid-column: 1/-1; margin-bottom: 10px;">🌍 World Selection</h3>';
+    
+    WORLDS.forEach(world => {
+        const isUnlocked = gameState.unlockedWorlds.includes(world.id);
+        const isCurrent = gameState.currentWorld === world.id;
+        
+        const worldBox = document.createElement('div');
+        worldBox.style.cssText = `
+            background: ${isUnlocked ? world.color : '#333'};
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
+            opacity: ${isUnlocked ? 1 : 0.5};
+            border: 3px solid ${isCurrent ? '#ffd700' : 'transparent'};
+            transition: all 0.3s;
+        `;
+        
+        if (isUnlocked) {
+            worldBox.onmouseover = function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 10px 30px rgba(255, 215, 0, 0.5)';
+            };
+            worldBox.onmouseout = function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            };
+            worldBox.onclick = () => selectWorld(world.id);
+        }
+        
+        worldBox.innerHTML = `
+            <div style="font-size: 24px; font-weight: bold;">World ${world.id}</div>
+            <div style="font-size: 12px; margin-top: 5px;">${world.name}</div>
+            <div style="font-size: 10px; margin-top: 5px; opacity: 0.8;">Floors ${world.floors[0]}-${world.floors[1]}</div>
+            ${!isUnlocked ? '<div style="font-size: 18px; margin-top: 5px;">🔒</div>' : ''}
+        `;
+        
+        worldSelector.appendChild(worldBox);
+    });
+}
+
+function renderFloorGrid() {
+    const container = document.getElementById('floorGrid');
+    container.innerHTML = '';
+    
+    // Show floors for current world only
+    const startFloor = (gameState.currentWorld - 1) * 100 + 1;
+    const endFloor = gameState.currentWorld * 100;
+    
+    for (let i = startFloor; i <= endFloor; i++) {
+        const box = document.createElement('div');
+        box.className = 'floor-box';
+        
+        if (!gameState.unlockedFloors.includes(i)) box.classList.add('locked');
+        if (i === gameState.currentFloor) box.classList.add('current');
+        if (isBossFloor(i)) box.classList.add('boss-floor');
+        
+        box.innerHTML = `
+            <div style="font-size: 20px; font-weight: bold;">Floor ${i}</div>
+            ${isBossFloor(i) ? '<div style="color: #ff4444; font-size: 11px;">BOSS</div>' : ''}
+        `;
+        
+        box.onclick = () => selectFloor(i);
+        container.appendChild(box);
+    }
+}
+
+function renderInventory() {
+    const container = document.getElementById('inventoryGrid');
+    container.innerHTML = '';
+    
+    const hasItems = Object.keys(gameState.inventory).length > 0;
+    
+    if (!hasItems) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; opacity: 0.7;">No items yet!</div>';
+        return;
+    }
+    
+    Object.keys(gameState.inventory).forEach(itemKey => {
+        const count = gameState.inventory[itemKey];
+        if (count > 0) {
+            const item = GAME_DATA.items[itemKey];
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `inventory-item item-rarity-${item.r}`;
+            itemDiv.innerHTML = `
+                <div class="item-icon">${item.e}</div>
+                <div style="font-size: 12px;">${item.n}</div>
+                <div class="item-count">${count}</div>
+            `;
+            
+            container.appendChild(itemDiv);
+        }
+    });
+}
+
+function renderCraftingRecipes() {
+    const container = document.getElementById('recipeList');
+    container.innerHTML = '<h3>Available Recipes</h3>';
+    
+    Object.keys(GAME_DATA.recipes).forEach(recipeKey => {
+        const recipe = GAME_DATA.recipes[recipeKey];
+        
+        const card = document.createElement('div');
+        card.className = 'recipe-card';
+        card.setAttribute('data-recipe', recipeKey);
+        card.onclick = function(e) {
+            const key = e.currentTarget.getAttribute('data-recipe');
+            selectRecipe(key);
+        };
+        
+        let matsHTML = '';
+        Object.keys(recipe.m).forEach(matKey => {
+            const needed = recipe.m[matKey];
+            const owned = gameState.inventory[matKey] || 0;
+            const hasEnough = owned >= needed;
+            
+            matsHTML += `
+                <div style="color: ${hasEnough ? '#38ef7d' : '#ff6b6b'}; font-size: 11px;">
+                    ${GAME_DATA.items[matKey].e} ${GAME_DATA.items[matKey].n}: ${owned}/${needed}
+                </div>
+            `;
+        });
+        
+        card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <span style="font-size: 32px;">${recipe.e}</span>
+                <strong style="font-size: 14px;">${recipe.n}</strong>
+            </div>
+            <div style="font-size: 12px;">${matsHTML}</div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+function selectRecipe(recipeKey) {
+    gameState.selectedRecipe = recipeKey;
+    
+    document.querySelectorAll('.recipe-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    const selectedCard = document.querySelector(`[data-recipe="${recipeKey}"]`);
+    if (selectedCard) selectedCard.classList.add('selected');
+    
+    const recipe = GAME_DATA.recipes[recipeKey];
+    const selectedDiv = document.getElementById('selectedRecipe');
+    
+    let matsHTML = '';
+    let canCraft = true;
+    
+    Object.keys(recipe.m).forEach(matKey => {
+        const needed = recipe.m[matKey];
+        const owned = gameState.inventory[matKey] || 0;
+        const hasEnough = owned >= needed;
+        
+        if (!hasEnough) canCraft = false;
+        
+        matsHTML += `
+            <div style="color: ${hasEnough ? '#38ef7d' : '#ff6b6b'}; margin: 5px 0;">
+                ${GAME_DATA.items[matKey].e} ${GAME_DATA.items[matKey].n}: ${owned}/${needed}
+            </div>
+        `;
+    });
+    
+    selectedDiv.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 15px;">${recipe.e}</div>
+        <h3>${recipe.n}</h3>
+        <div style="margin: 15px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <strong>Bonus:</strong> ${getBonusDescription(recipe.b)}
+        </div>
+        <div style="margin-top: 15px;">
+            <strong>Materials:</strong>
+            ${matsHTML}
+        </div>
+    `;
+    
+    document.getElementById('craftBtn').disabled = !canCraft;
+}
+
+function getBonusDescription(bonus) {
+    const types = {
+        'hero_power': `+${bonus.v}% Hero Power`,
+        'hero_defense': `+${bonus.v}% Hero Defense`,
+        'gold_bonus': `+${bonus.v}% Gold Drop`,
+        'drop_rate': `+${bonus.v}% Item Drop Rate`,
+        'spawn_rate': `+${bonus.v}% Spawn Rate`,
+        'all_bonus': `+${bonus.v}% All Stats`
+    };
+    return types[bonus.t] || 'Unknown Bonus';
+}
+
+function craftItem() {
+    if (!gameState.selectedRecipe) return;
+    
+    const recipe = GAME_DATA.recipes[gameState.selectedRecipe];
+    
+    let canCraft = true;
+    Object.keys(recipe.m).forEach(matKey => {
+        const needed = recipe.m[matKey];
+        const owned = gameState.inventory[matKey] || 0;
+        if (owned < needed) canCraft = false;
+    });
+    
+    if (!canCraft) {
+        showAchievement('❌ Not enough materials!');
+        return;
+    }
+    
+    Object.keys(recipe.m).forEach(matKey => {
+        gameState.inventory[matKey] -= recipe.m[matKey];
+    });
+    
+    if (!gameState.ownedArtifacts.includes(gameState.selectedRecipe)) {
+        gameState.ownedArtifacts.push(gameState.selectedRecipe);
+    }
+    
+    showAchievement(`✨ Crafted ${recipe.n}!`);
+    
+    renderInventory();
+    renderCraftingRecipes();
+    renderArtifacts();
+    selectRecipe(gameState.selectedRecipe);
+}
+
+function renderArtifacts() {
+    const slotsContainer = document.getElementById('artifactSlots');
+    slotsContainer.innerHTML = '';
+    
+    for (let i = 0; i < 3; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'artifact-slot';
+        
+        if (gameState.equippedArtifacts[i]) {
+            const artifactKey = gameState.equippedArtifacts[i];
+            const artifact = GAME_DATA.recipes[artifactKey];
+            
+            slot.classList.add('equipped');
+            slot.innerHTML = `
+                <div style="font-size: 48px;">${artifact.e}</div>
+                <div style="font-weight: bold; margin: 10px 0;">${artifact.n}</div>
+                <div class="artifact-bonus">${getBonusDescription(artifact.b)}</div>
+                <button class="upgrade-btn" style="margin-top: 15px; background: #ff6b6b;" onclick="unequipArtifact(${i})">
+                    Unequip
+                </button>
+            `;
+        } else {
+            slot.innerHTML = `
+                <div style="font-size: 48px; opacity: 0.3;">📦</div>
+                <div style="opacity: 0.5;">Empty Slot</div>
+            `;
+        }
+        
+        slotsContainer.appendChild(slot);
+    }
+    
+    const availableContainer = document.getElementById('availableArtifacts');
+    availableContainer.innerHTML = '';
+    
+    if (gameState.ownedArtifacts.length === 0) {
+        availableContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; opacity: 0.7;">No artifacts yet. Craft them in the Crafting tab!</div>';
+        return;
+    }
+    
+    gameState.ownedArtifacts.forEach(artifactKey => {
+        if (!gameState.equippedArtifacts.includes(artifactKey)) {
+            const artifact = GAME_DATA.recipes[artifactKey];
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">${artifact.e}</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">${artifact.n}</div>
+                    <div class="artifact-bonus">${getBonusDescription(artifact.b)}</div>
+                    <button class="upgrade-btn" style="margin-top: 15px;" onclick="equipArtifact('${artifactKey}')" ${gameState.equippedArtifacts.length >= 3 ? 'disabled' : ''}>
+                        Equip
+                    </button>
+                </div>
+            `;
+            
+            availableContainer.appendChild(card);
+        }
+    });
+}
+
+function equipArtifact(artifactKey) {
+    if (gameState.equippedArtifacts.length >= 3) {
+        showAchievement('❌ Max 3 artifacts!');
+        return;
+    }
+    
+    gameState.equippedArtifacts.push(artifactKey);
+    renderArtifacts();
+    showAchievement(`✨ Equipped ${GAME_DATA.recipes[artifactKey].n}!`);
+}
+
+function unequipArtifact(slotIndex) {
+    const artifactKey = gameState.equippedArtifacts[slotIndex];
+    gameState.equippedArtifacts.splice(slotIndex, 1);
+    renderArtifacts();
+    showAchievement(`Unequipped ${GAME_DATA.recipes[artifactKey].n}!`);
+}
+
+function getArtifactBonus(bonusType) {
+    let total = 0;
+    
+    gameState.equippedArtifacts.forEach(artifactKey => {
+        const artifact = GAME_DATA.recipes[artifactKey];
+        if (artifact && artifact.b) {
+            if (artifact.b.t === bonusType || artifact.b.t === 'all_bonus') {
+                total += artifact.b.v;
+            }
+        }
+    });
+    
+    return total;
+}
+
+function renderShop() {
+    const container = document.getElementById('shopGrid');
+    container.innerHTML = '';
+    
+    Object.keys(GAME_DATA.shop).forEach(itemKey => {
+        const item = GAME_DATA.shop[itemKey];
+        const currentLevel = gameState.shopUpgrades[itemKey] || 0;
+        const maxed = currentLevel >= item.m;
+        const cost = item.c * (currentLevel + 1);
+        
+        const shopCard = document.createElement('div');
+        shopCard.className = 'shop-item';
+        shopCard.innerHTML = `
+            <div style="text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 10px;">${item.e}</div>
+                <h3>${item.n}</h3>
+                <p style="font-size: 14px; opacity: 0.8; margin: 10px 0;">${item.d}</p>
+                <div style="font-size: 12px; color: #ffd700; margin: 10px 0;">
+                    Level: ${currentLevel}/${item.m}
+                </div>
+                <div class="shop-price">⚫ ${cost} Dark Essence</div>
+                <button class="buy-btn" onclick="buyShopItem('${itemKey}')" ${maxed || gameState.darkEssence < cost ? 'disabled' : ''}>
+                    ${maxed ? 'MAX LEVEL' : 'BUY'}
+                </button>
+            </div>
+        `;
+        
+        container.appendChild(shopCard);
+    });
+}
+
+function buyShopItem(itemKey) {
+    const item = GAME_DATA.shop[itemKey];
+    const currentLevel = gameState.shopUpgrades[itemKey] || 0;
+    const cost = item.c * (currentLevel + 1);
+    
+    if (currentLevel >= item.m) {
+        showAchievement('Already at max level!');
+        return;
+    }
+    
+    if (gameState.darkEssence < cost) {
+        showAchievement('Not enough Dark Essence!');
+        return;
+    }
+    
+    gameState.darkEssence -= cost;
+    gameState.shopUpgrades[itemKey] = currentLevel + 1;
+    
+    showAchievement(`✨ Purchased ${item.n} Lv${currentLevel + 1}!`);
+    renderShop();
+    updateUI();
+}
+
+function getShopBonus(bonusType) {
+    let total = 0;
+    
+    Object.keys(gameState.shopUpgrades).forEach(itemKey => {
+        const item = GAME_DATA.shop[itemKey];
+        const level = gameState.shopUpgrades[itemKey];
+        
+        if (item && item.b && item.b.t === bonusType) {
+            total += item.b.v * level;
+        }
+    });
+    
+    return total;
+}
+
+function upgradeMonster(type) {
+    const m = GAME_DATA.monsters[type];
+    const cost = m.c * Math.pow(1.15, m.lv);
+    
+    if (gameState.gold >= cost) {
+        gameState.gold -= cost;
+        m.lv++;
+        renderMonsterCards();
+        updateUI();
+    }
+}
+
+function upgradeHero(type) {
+    const h = GAME_DATA.heroes[type];
+    const cost = h.c * Math.pow(1.15, h.lv);
+    
+    if (gameState.gold >= cost) {
+        gameState.gold -= cost;
+        h.lv++;
+        renderHeroCards();
+        updateUI();
+    }
+}
+
+function autoUpgradeLogic() {
+    let bestUpgrade = null;
+    let bestRatio = 0;
+
+    Object.keys(GAME_DATA.monsters).forEach(key => {
+        const m = GAME_DATA.monsters[key];
+        const cost = m.c * Math.pow(1.15, m.lv);
+        const value = m.sr * m.dr;
+        const ratio = value / cost;
+        
+        if (gameState.gold >= cost && ratio > bestRatio) {
+            bestRatio = ratio;
+            bestUpgrade = { type: 'monster', key: key };
+        }
+    });
+
+    Object.keys(GAME_DATA.heroes).forEach(key => {
+        const h = GAME_DATA.heroes[key];
+        const cost = h.c * Math.pow(1.15, h.lv);
+        const value = h.p * h.ar;
+        const ratio = value / cost;
+        
+        if (gameState.gold >= cost && ratio > bestRatio) {
+            bestRatio = ratio;
+            bestUpgrade = { type: 'hero', key: key };
+        }
+    });
+
+    if (bestUpgrade) {
+        if (bestUpgrade.type === 'monster') {
+            upgradeMonster(bestUpgrade.key);
+        } else {
+            upgradeHero(bestUpgrade.key);
+        }
+    }
+}
+
+function calculateEssenceGain() {
+    const baseEssence = Math.floor(Math.sqrt(gameState.totalGoldEarned / 1000));
+    const bonus = 1 + (getShopBonus('prestige_bonus') / 100);
+    return Math.floor(baseEssence * bonus);
+}
+
+function getMultiplier(essence = null) {
+    const de = essence !== null ? essence : gameState.darkEssence;
+    return 1 + (de * 0.1);
+}
+
+function doPrestige() {
+    const essenceGain = calculateEssenceGain();
+    
+    if (essenceGain === 0) {
+        alert('Need more gold before prestiging!');
+        return;
+    }
+    
+    if (!confirm(`Gain ${essenceGain} Dark Essence and reset?`)) {
+        return;
+    }
+    
+    const keptArtifacts = [...gameState.ownedArtifacts];
+    const keptEquipped = [...gameState.equippedArtifacts];
+    const keptShop = {...gameState.shopUpgrades};
+    const keptWorlds = [...gameState.unlockedWorlds];
+    
+    gameState.darkEssence += essenceGain;
+    gameState.prestigeCount++;
+    
+    gameState.gold = 0;
+    gameState.currentFloor = 1;
+    gameState.currentWorld = 1;
+    gameState.floorProgress = 0;
+    gameState.totalGoldEarned = 0;
+    gameState.monstersKilled = 0;
+    gameState.activeMonsters = [];
+    gameState.activeHeroes = [];
+    gameState.bossActive = false;
+    gameState.inventory = {};
+    gameState.unlockedFloors = [1];
+    gameState.farmMode = false;
+    
+    Object.keys(GAME_DATA.monsters).forEach(key => {
+        GAME_DATA.monsters[key].lv = key === 'bat' ? 1 : 0;
+    });
+    Object.keys(GAME_DATA.heroes).forEach(key => {
+        GAME_DATA.heroes[key].lv = key === 'warrior' ? 1 : 0;
+    });
+    
+    gameState.ownedArtifacts = keptArtifacts;
+    gameState.equippedArtifacts = keptEquipped;
+    gameState.shopUpgrades = keptShop;
+    gameState.unlockedWorlds = keptWorlds;
+    
+    showEventBanner('🔄 PRESTIGE!', `+${essenceGain} Dark Essence! ${getMultiplier().toFixed(1)}x`);
+    
+    renderMonsterCards();
+    renderHeroCards();
+    renderFloorGrid();
+    renderWorldSelector();
+    renderInventory();
+    renderArtifacts();
+    renderShop();
+    updateUI();
+}
+
+function renderMonsterCards() {
+    const container = document.getElementById('monsterCards');
+    container.innerHTML = '';
+    
+    Object.keys(GAME_DATA.monsters).forEach(key => {
+        const m = GAME_DATA.monsters[key];
+        const cost = Math.floor(m.c * Math.pow(1.15, m.lv));
+        const canAfford = gameState.gold >= cost;
+        
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div class="card-header">
+                <span class="card-icon">${m.e}</span>
+                <span class="card-title">${m.n}</span>
+                <span class="card-level">Lv ${m.lv}</span>
+            </div>
+            <div class="card-stats">
+                <div class="card-stat">
+                    <span>Spawn Rate:</span>
+                    <span>${(m.sr * m.lv).toFixed(1)}/sec</span>
+                </div>
+                <div class="card-stat">
+                    <span>Gold Drop:</span>
+                    <span>💰 ${(m.dr * getMultiplier()).toFixed(1)}</span>
+                </div>
+            </div>
+            <button class="upgrade-btn" onclick="upgradeMonster('${key}')" ${!canAfford ? 'disabled' : ''}>
+                Upgrade - 💰 ${formatNumber(cost)}
+            </button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function renderHeroCards() {
+    const container = document.getElementById('heroCards');
+    container.innerHTML = '';
+    
+    Object.keys(GAME_DATA.heroes).forEach(key => {
+        const h = GAME_DATA.heroes[key];
+        const cost = Math.floor(h.c * Math.pow(1.15, h.lv));
+        const canAfford = gameState.gold >= cost;
+        const actualPower = h.p * h.lv * (1 + (getArtifactBonus('hero_power') + getShopBonus('hero_power')) / 100);
+        
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div class="card-header">
+                <span class="card-icon">${h.e}</span>
+                <span class="card-title">${h.n}</span>
+                <span class="card-level">Lv ${h.lv}</span>
+            </div>
+            <div class="card-stats">
+                <div class="card-stat">
+                    <span>Power:</span>
+                    <span>⚔️ ${actualPower.toFixed(0)}</span>
+                </div>
+                <div class="card-stat">
+                    <span>Attack Rate:</span>
+                    <span>${h.ar.toFixed(1)}/sec</span>
+                </div>
+                <div class="card-stat">
+                    <span>Passive Income:</span>
+                    <span>💰 ${(actualPower * h.ar * 0.1 * getMultiplier()).toFixed(1)}/s</span>
+                </div>
+            </div>
+            <button class="upgrade-btn" onclick="upgradeHero('${key}')" ${!canAfford ? 'disabled' : ''}>
+                Upgrade - 💰 ${formatNumber(cost)}
+            </button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function renderDungeon() {
+    const container = document.getElementById('dungeonEntities');
+    const bossContainer = document.getElementById('bossHealthContainer');
+    
+    if (gameState.bossActive) {
+        const hpPercent = (gameState.bossHP / gameState.bossMaxHP) * 100;
+        bossContainer.innerHTML = `
+            <div class="boss-health">
+                <div class="boss-name">${gameState.bossName}</div>
+                <div class="boss-hp-bar">
+                    <div class="boss-hp-fill" style="width: ${hpPercent}%">
+                        ${formatNumber(gameState.bossHP)} / ${formatNumber(gameState.bossMaxHP)}
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        bossContainer.innerHTML = '';
+    }
+    
+    container.innerHTML = '';
+    
+    if (gameState.bossActive) {
+        const boss = document.createElement('div');
+        boss.className = 'entity boss';
+        boss.innerHTML = gameState.bossName.split(' ')[0];
+        container.appendChild(boss);
+    }
+    
+    gameState.activeMonsters.slice(0, 20).forEach((monster, i) => {
+        const entity = document.createElement('div');
+        entity.className = 'entity monster';
+        entity.innerHTML = monster.emoji;
+        entity.style.animationDelay = `${i * 0.1}s`;
+        container.appendChild(entity);
+    });
+    
+    gameState.activeHeroes.slice(0, 15).forEach((hero, i) => {
+        const entity = document.createElement('div');
+        entity.className = 'entity hero';
+        entity.innerHTML = hero.emoji;
+        entity.style.animationDelay = `${i * 0.15}s`;
+        container.appendChild(entity);
+    });
+}
+
+function createLootParticle() {
+    const container = document.getElementById('dungeonEntities');
+    const particle = document.createElement('div');
+    particle.className = 'loot-particle';
+    particle.innerHTML = '💰';
+    particle.style.left = Math.random() * 90 + '%';
+    particle.style.top = Math.random() * 90 + '%';
+    container.appendChild(particle);
+    
+    setTimeout(() => particle.remove(), 2000);
+}
+
+function updateUI() {
+    // Calculate REAL gold per second with passive income
+    let goldPerSec = 0;
+    
+    // Active heroes attacking
+    gameState.activeHeroes.forEach(hero => {
+        goldPerSec += hero.power * hero.attackRate * 0.5;
+    });
+    
+    // Passive income from all upgraded heroes
+    Object.keys(GAME_DATA.heroes).forEach(key => {
+        const h = GAME_DATA.heroes[key];
+        if (h.lv > 0) {
+            const heroPower = h.p * h.lv * (1 + (getArtifactBonus('hero_power') + getShopBonus('hero_power')) / 100);
+            goldPerSec += heroPower * h.ar * 0.1;
+        }
+    });
+    
+    goldPerSec *= getMultiplier();
+    
+    document.getElementById('goldPerSec').textContent = formatNumber(goldPerSec);
+    document.getElementById('totalGold').textContent = formatNumber(gameState.gold);
+    document.getElementById('monstersKilled').textContent = formatNumber(gameState.monstersKilled);
+    document.getElementById('darkEssence').textContent = formatNumber(gameState.darkEssence);
+    
+    let totalItems = 0;
+    Object.values(gameState.inventory).forEach(count => totalItems += count);
+    document.getElementById('totalItems').textContent = formatNumber(totalItems);
+    
+    document.getElementById('currentFloor').textContent = gameState.currentFloor;
+    
+    const worldBiomes = getBiomesForCurrentWorld();
+    const localFloor = ((gameState.currentFloor - 1) % 100) + 1;
+    const biomeIndex = Math.floor((localFloor - 1) / 10);
+    const biome = worldBiomes[biomeIndex];
+    if (biome) document.getElementById('biomeName').textContent = biome.n;
+    
+    const requiredKills = getRequiredKills();
+    const progressPercent = Math.min((gameState.floorProgress / requiredKills) * 100, 100);
+    document.getElementById('floorProgress').style.width = progressPercent + '%';
+    document.getElementById('floorProgress').textContent = Math.floor(progressPercent) + '%';
+    
+    const essenceGain = calculateEssenceGain();
+    const currentMult = getMultiplier();
+    const afterMult = getMultiplier(gameState.darkEssence + essenceGain);
+    
+    document.getElementById('essenceGain').textContent = formatNumber(essenceGain);
+    document.getElementById('currentMultiplier').textContent = currentMult.toFixed(1) + 'x';
+    document.getElementById('afterMultiplier').textContent = afterMult.toFixed(1) + 'x';
+    
+    document.getElementById('prestigeBtn').disabled = essenceGain === 0;
+}
+
+function formatNumber(num) {
+    if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+    return Math.floor(num).toString();
+}
+
+function switchTab(tabName, event) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    document.getElementById(tabName).classList.add('active');
+    
+    if (tabName === 'inventory') renderInventory();
+    if (tabName === 'artifacts') renderArtifacts();
+    if (tabName === 'shop') renderShop();
+    if (tabName === 'floors') {
+        renderWorldSelector();
+        renderFloorGrid();
+    }
+}
+
+function toggleAuto(feature) {
+    if (feature === 'collect') {
+        gameState.autoCollect = !gameState.autoCollect;
+        document.getElementById('autoCollectToggle').classList.toggle('active');
+    } else if (feature === 'upgrade') {
+        if (gameState.currentFloor >= 10) {
+            gameState.autoUpgrade = !gameState.autoUpgrade;
+            document.getElementById('autoUpgradeToggle').classList.toggle('active');
+        } else {
+            alert('Unlock at Floor 10!');
+        }
+    } else if (feature === 'prestige') {
+        if (gameState.prestigeCount >= 1) {
+            gameState.autoPrestige = !gameState.autoPrestige;
+            document.getElementById('autoPrestigeToggle').classList.toggle('active');
+        } else {
+            alert('Unlock after first prestige!');
+        }
+    }
+}
+
+function showAchievement(message) {
+    const popup = document.createElement('div');
+    popup.className = 'achievement-popup';
+    popup.innerHTML = `<h3>🏆 Achievement</h3><p>${message}</p>`;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 3000);
+}
+
+function showEventBanner(title, message) {
+    const banner = document.createElement('div');
+    banner.className = 'event-banner';
+    banner.innerHTML = `<h2>${title}</h2><p style="font-size: 20px; margin-top: 10px;">${message}</p>`;
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 3000);
+}
+
+function saveGame() {
+    const saveData = {
+        gold: gameState.gold,
+        darkEssence: gameState.darkEssence,
+        monstersKilled: gameState.monstersKilled,
+        currentFloor: gameState.currentFloor,
+        currentWorld: gameState.currentWorld,
+        floorProgress: gameState.floorProgress,
+        prestigeCount: gameState.prestigeCount,
+        totalGoldEarned: gameState.totalGoldEarned,
+        farmMode: gameState.farmMode,
+        unlockedFloors: gameState.unlockedFloors,
+        unlockedWorlds: gameState.unlockedWorlds,
+        autoCollect: gameState.autoCollect,
+        autoUpgrade: gameState.autoUpgrade,
+        autoPrestige: gameState.autoPrestige,
+        inventory: gameState.inventory,
+        equippedArtifacts: gameState.equippedArtifacts,
+        ownedArtifacts: gameState.ownedArtifacts,
+        shopUpgrades: gameState.shopUpgrades,
+        lastUpdate: gameState.lastUpdate,
+        monsters: {},
+        heroes: {}
+    };
+    
+    Object.keys(GAME_DATA.monsters).forEach(key => {
+        saveData.monsters[key] = GAME_DATA.monsters[key].lv;
+    });
+    
+    Object.keys(GAME_DATA.heroes).forEach(key => {
+        saveData.heroes[key] = GAME_DATA.heroes[key].lv;
+    });
+    
+    localStorage.setItem('idleDungeonComplete', JSON.stringify(saveData));
+}
+
+function loadGame() {
+    const saved = localStorage.getItem('idleDungeonComplete');
+    if (saved) {
+        const loaded = JSON.parse(saved);
+        
+        gameState.gold = loaded.gold || 0;
+        gameState.darkEssence = loaded.darkEssence || 0;
+        gameState.monstersKilled = loaded.monstersKilled || 0;
+        gameState.currentFloor = loaded.currentFloor || 1;
+        gameState.currentWorld = loaded.currentWorld || 1;
+        gameState.floorProgress = loaded.floorProgress || 0;
+        gameState.prestigeCount = loaded.prestigeCount || 0;
+        gameState.totalGoldEarned = loaded.totalGoldEarned || 0;
+        gameState.farmMode = loaded.farmMode || false;
+        gameState.unlockedFloors = loaded.unlockedFloors || [1];
+        gameState.unlockedWorlds = loaded.unlockedWorlds || [1];
+        gameState.autoCollect = loaded.autoCollect !== undefined ? loaded.autoCollect : true;
+        gameState.autoUpgrade = loaded.autoUpgrade || false;
+        gameState.autoPrestige = loaded.autoPrestige || false;
+        gameState.inventory = loaded.inventory || {};
+        gameState.equippedArtifacts = loaded.equippedArtifacts || [];
+        gameState.ownedArtifacts = loaded.ownedArtifacts || [];
+        gameState.shopUpgrades = loaded.shopUpgrades || {};
+        
+        if (loaded.monsters) {
+            Object.keys(loaded.monsters).forEach(key => {
+                if (GAME_DATA.monsters[key]) {
+                    GAME_DATA.monsters[key].lv = loaded.monsters[key];
+                }
+            });
+        }
+        
+        if (loaded.heroes) {
+            Object.keys(loaded.heroes).forEach(key => {
+                if (GAME_DATA.heroes[key]) {
+                    GAME_DATA.heroes[key].lv = loaded.heroes[key];
+                }
+            });
+        }
+        
+        const now = Date.now();
+        const offlineTime = Math.min((now - loaded.lastUpdate) / 1000, 43200);
+        
+        if (offlineTime > 60) {
+            let offlineGold = 0;
+            
+            // Calculate offline passive income
+            Object.keys(GAME_DATA.heroes).forEach(key => {
+                const h = GAME_DATA.heroes[key];
+                if (h.lv > 0) {
+                    const heroPower = h.p * h.lv * (1 + (getArtifactBonus('hero_power') + getShopBonus('hero_power')) / 100);
+                    offlineGold += heroPower * h.ar * 0.1 * offlineTime;
+                }
+            });
+            
+            offlineGold *= getMultiplier();
+            
+            gameState.gold += offlineGold;
+            gameState.totalGoldEarned += offlineGold;
+            
+            showEventBanner('💤 OFFLINE', `+${formatNumber(offlineGold)} gold earned!`);
+        }
+        
+        if (gameState.autoUpgrade) {
+            document.getElementById('autoUpgradeToggle').classList.add('active');
+        }
+        if (gameState.autoPrestige) {
+            document.getElementById('autoPrestigeToggle').classList.add('active');
+        }
+    }
+    gameState.lastUpdate = Date.now();
+}
+
+init();
+
+    </script>
+</body>
+</html>
